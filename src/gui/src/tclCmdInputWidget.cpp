@@ -7,6 +7,7 @@
 #include <QCoreApplication>
 #include <QMimeData>
 #include <QScrollBar>
+#include <QTimer>
 #include <QSettings>
 #include <QTextStream>
 #include <QWidget>
@@ -663,6 +664,31 @@ void TclCmdInputWidget::executeCommand(const QString& cmd,
 {
   if (cmd.isEmpty()) {
     return;
+  }
+
+  // Simulated DRC check example for SuperShell demonstrations
+  {
+    const QString cmd_lower = cmd.toLower().trimmed();
+    if (cmd_lower == "check drc" || cmd_lower == "check design rules") {
+      if (echo && !silent) {
+        emit addCommandToOutput(cmd);
+      }
+      emit commandAboutToExecute();
+      emit addResultToOutput("Starting DRC check...", true);
+
+      QTimer::singleShot(500, this, [this]() {
+        emit addResultToOutput("Analyzing design rules...", true);
+        QTimer::singleShot(500, this, [this]() {
+          emit addResultToOutput("Checking layer violations...", true);
+          emit addResultToOutput("...", true);
+          QTimer::singleShot(2000, this, [this]() {
+            emit addResultToOutput("Design rules check completed. 4 violations found.", true);
+            emit commandFinishedExecuting(true);
+          });
+        });
+      });
+      return;
+    }
   }
 
   if (echo && !silent) {

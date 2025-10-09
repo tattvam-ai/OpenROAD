@@ -411,7 +411,8 @@ static int tclAppInit(int& argc,
 #endif
     exit_after_cmd_file = findCmdLineFlag(argc, argv, "-exit");
 #ifdef ENABLE_READLINE
-    if (!exit_after_cmd_file) {
+    // Initialize tclreadline only for CLI mode (not when GUI is enabled)
+    if (!exit_after_cmd_file && !gui::Gui::enabled()) {
       if (Tclreadline_Init(interp) == TCL_ERROR) {
         return TCL_ERROR;
       }

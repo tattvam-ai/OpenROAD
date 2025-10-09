@@ -69,6 +69,9 @@ if (Qt5_FOUND AND BUILD_GUI)
     src/bufferTreeDescriptor.cpp
     src/chartsWidget.cpp
     src/GUIProgress.cpp
+    src/superShellWidget.cpp
+    src/simulatedAI.cpp
+    src/acceptRejectOverlay.cpp
     src/dropdownCheckboxes.cpp
     resources/resource.qrc
   )
