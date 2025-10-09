@@ -460,6 +460,32 @@ endif()
 
 # executable
 install(TARGETS openroad DESTINATION bin)
+# Chip Companion standalone shell
+add_executable(chip_companion
+  companion/Main.cc
+)
+
+set_target_properties(chip_companion PROPERTIES
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+)
+
+target_link_libraries(chip_companion
+  ord
+  ${TCL_LIBRARY}
+  ${CMAKE_THREAD_LIBS_INIT}
+  ${Boost_LIBRARIES}
+)
+
+target_include_directories(chip_companion
+  PUBLIC
+    ../include
+  PRIVATE
+    ${TCL_INCLUDE_PATH}
+    ${TCL_INCLUDE_DIRS}
+)
+
+install(TARGETS chip_companion DESTINATION bin)
+
 
 ################################################################
 
