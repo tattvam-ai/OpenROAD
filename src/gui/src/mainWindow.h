@@ -89,7 +89,6 @@ class MainWindow : public QMainWindow, public odb::dbDatabaseObserver
   DisplayControls* getControls() const { return controls_; }
   LayoutViewer* getLayoutViewer() const;
   LayoutTabs* getLayoutTabs() const { return viewers_; }
-  SuperShellWidget* getSuperShellWidget() const { return supershell_; }
   DRCWidget* getDRCViewer() const { return drc_viewer_; }
   ClockWidget* getClockViewer() const { return clock_viewer_; }
   ScriptWidget* getScriptWidget() const { return script_; }
@@ -336,7 +335,7 @@ class MainWindow : public QMainWindow, public odb::dbDatabaseObserver
   BrowserWidget* hierarchy_widget_;
   ChartsWidget* charts_widget_;
   HelpWidget* help_widget_;
-  SuperShellWidget* supershell_;
+  // SuperShell removed
 
   FindObjectDialog* find_dialog_;
   GotoLocationDialog* goto_dialog_;

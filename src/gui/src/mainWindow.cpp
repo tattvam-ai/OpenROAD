@@ -54,7 +54,6 @@
 #include "odb/db.h"
 #include "odb/dbObject.h"
 #include "scriptWidget.h"
-#include "superShellWidget.h"
 #include "selectHighlightWindow.h"
 #include "sta/Liberty.hh"
 #include "sta/NetworkClass.hh"
@@ -103,7 +102,6 @@ MainWindow::MainWindow(bool load_settings, QWidget* parent)
           new BrowserWidget(viewers_->getModuleSettings(), controls_, this)),
       charts_widget_(new ChartsWidget(this)),
       help_widget_(new HelpWidget(this)),
-      supershell_(new SuperShellWidget(this)),
       find_dialog_(new FindObjectDialog(this)),
       goto_dialog_(new GotoLocationDialog(this, viewers_)),
       selection_timer_(std::make_unique<QTimer>()),
@@ -116,7 +114,7 @@ MainWindow::MainWindow(bool load_settings, QWidget* parent)
   setCentralWidget(viewers_);
   addDockWidget(Qt::BottomDockWidgetArea, script_);
   addDockWidget(Qt::BottomDockWidgetArea, selection_browser_);
-  addDockWidget(Qt::BottomDockWidgetArea, supershell_);
+  // SuperShell removed
   addDockWidget(Qt::LeftDockWidgetArea, controls_);
   addDockWidget(Qt::RightDockWidgetArea, inspector_);
   addDockWidget(Qt::RightDockWidgetArea, hierarchy_widget_);
@@ -127,7 +125,7 @@ MainWindow::MainWindow(bool load_settings, QWidget* parent)
   addDockWidget(Qt::RightDockWidgetArea, help_widget_);
 
   tabifyDockWidget(selection_browser_, script_);
-  tabifyDockWidget(script_, supershell_);
+  // SuperShell removed
   selection_browser_->hide();
 
   tabifyDockWidget(inspector_, hierarchy_widget_);
@@ -154,15 +152,7 @@ MainWindow::MainWindow(bool load_settings, QWidget* parent)
           &ScriptWidget::commandAboutToExecute,
           viewers_,
           &LayoutTabs::commandAboutToExecute);
-  // Keep SuperShell in sync with viewer state
-  connect(supershell_,
-          &SuperShellWidget::commandAboutToExecute,
-          viewers_,
-          &LayoutTabs::commandAboutToExecute);
-  connect(supershell_,
-          &SuperShellWidget::commandExecuted,
-          viewers_,
-          &LayoutTabs::commandFinishedExecuting);
+  // SuperShell removed
   connect(this, &MainWindow::blockLoaded, viewers_, &LayoutTabs::blockLoaded);
   connect(this, &MainWindow::redraw, viewers_, &LayoutTabs::fullRepaint);
   connect(
@@ -171,15 +161,12 @@ MainWindow::MainWindow(bool load_settings, QWidget* parent)
       this, &MainWindow::blockLoaded, timing_widget_, &TimingWidget::setBlock);
 
   connect(this, &MainWindow::pause, script_, &ScriptWidget::pause);
-  connect(this, &MainWindow::pause, supershell_, &SuperShellWidget::pause);
+  // SuperShell removed
   connect(script_,
           &ScriptWidget::executionPaused,
           viewers_,
           &LayoutTabs::executionPaused);
-  connect(supershell_,
-          &SuperShellWidget::executionPaused,
-          viewers_,
-          &LayoutTabs::executionPaused);
+  // SuperShell removed
   connect(
       controls_, &DisplayControls::changed, viewers_, &LayoutTabs::fullRepaint);
   connect(controls_,
@@ -450,7 +437,7 @@ MainWindow::MainWindow(bool load_settings, QWidget* parent)
         = settings.value("arrow_keys_scroll_step", arrow_keys_scroll_step_)
               .toInt();
     script_->readSettings(&settings);
-    supershell_->readSettings(&settings);
+   
     controls_->readSettings(&settings);
     timing_widget_->readSettings(&settings);
     hierarchy_widget_->readSettings(&settings);
@@ -879,7 +866,6 @@ void MainWindow::createMenus()
   windows_menu_->addAction(controls_->toggleViewAction());
   windows_menu_->addAction(inspector_->toggleViewAction());
   windows_menu_->addAction(script_->toggleViewAction());
-  windows_menu_->addAction(supershell_->toggleViewAction());
   windows_menu_->addAction(selection_browser_->toggleViewAction());
   windows_menu_->addAction(view_tool_bar_->toggleViewAction());
   windows_menu_->addAction(timing_widget_->toggleViewAction());
@@ -1625,7 +1611,7 @@ void MainWindow::saveSettings()
   settings.setValue("mouse_wheel_zoom", default_mouse_wheel_zoom_->isChecked());
   settings.setValue("arrow_keys_scroll_step", arrow_keys_scroll_step_);
   script_->writeSettings(&settings);
-  supershell_->writeSettings(&settings);
+  // SuperShell removed
   controls_->writeSettings(&settings);
   timing_widget_->writeSettings(&settings);
   hierarchy_widget_->writeSettings(&settings);
@@ -1673,7 +1659,7 @@ void MainWindow::setLogger(utl::Logger* logger)
 
   controls_->setLogger(logger);
   script_->setLogger(logger);
-  supershell_->setLogger(logger);
+  // SuperShell removed
   viewers_->setLogger(logger);
   drc_viewer_->setLogger(logger);
   clock_viewer_->setLogger(logger);

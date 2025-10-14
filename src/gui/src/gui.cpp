@@ -49,7 +49,6 @@
 #include "ord/OpenRoad.hh"
 #include "ruler.h"
 #include "scriptWidget.h"
-#include "superShellWidget.h"
 #include "timingWidget.h"
 #include "utl/Logger.h"
 #include "utl/decode.h"
@@ -1647,10 +1646,7 @@ int startGui(int& argc,
         main_window->postReadDb(main_window->getDb());
       });
 
-  // Setup SuperShellWidget Tcl
-  Tcl_Interp* super_shell_interp = ord::OpenRoad::openRoad()->tclInterp();
-  main_window->getSuperShellWidget()->setupTcl(
-      super_shell_interp, interactive, init_openroad, []() {});
+  // SuperShell removed
 
   // Exit the app if someone chooses exit from the menu in the window
   QObject::connect(main_window, &MainWindow::exit, &app, &QApplication::quit);
