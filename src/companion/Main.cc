@@ -4,7 +4,10 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <memory>
 #include <string>
+#include <array>
+#include <cstdio>
 
 #include "ord/InitOpenRoad.hh"
 #include "ord/OpenRoad.hh"
@@ -18,6 +21,54 @@ static void printGreeting()
 {
   std::cout << "I am your Chip Companion. How can I help you?" << std::endl;
   std::cout << "Type 'help companion' (or 'hc') for tips, 'exit' to quit." << std::endl;
+}
+
+// Shell escape the string
+static std::string shellEscape(const std::string& s)
+{
+  std::string out;
+  out.reserve(s.size() + 2);
+  out.push_back('"');
+  for (char c : s) {
+    if (c == '"' || c == '\\' || c == '$' || c == '`') {
+      out.push_back('\\');
+    }
+    out.push_back(c);
+  }
+  out.push_back('"');
+  return out;
+}
+
+static std::string runPythonAI(const std::string& query)
+{
+  // Get the python path
+  const char* py = std::getenv("CHIP_PYTHON");
+  if (!py || std::string(py).empty()) {
+    py = "python3";
+  }
+  // Get the script path
+  const char* script = std::getenv("CHIP_AI_SCRIPT");
+  // If the script path is not set, return an error
+  if (!script || std::string(script).empty()) {
+    return "[AI ERROR] Set CHIP_AI_SCRIPT to your main.py path.";
+  }
+  // Create the command that safely injects the script path and query into the python script, merges stderr to stdout
+  std::string cmd = std::string(py) + " " + shellEscape(script) + " --query " + shellEscape(query) + " 2>&1";
+
+
+  std::array<char, 4096> buf{};
+  // Accumulates all the text read from the subprocess into one string
+  std::string out;
+  // Starts a shell command (in cmd) and opens a read-only pipe to the child process’s stdout 
+  FILE* pipe = popen(cmd.c_str(), "r");
+  if (!pipe) {
+    return "[AI ERROR] Failed to spawn Python.";
+  }
+  while (fgets(buf.data(), buf.size(), pipe)) {
+    out.append(buf.data());
+  }
+  pclose(pipe);
+  return out;
 }
 
 int main(int argc, char* argv[])
@@ -68,6 +119,22 @@ int main(int argc, char* argv[])
       printGreeting();
       continue;
     }
+    if (line.rfind("ai", 0) == 0) {
+      std::string prompt;
+      if (line == "ai") {
+        std::cout << "question> ";
+        std::getline(std::cin, prompt);
+      } else if (line.size() > 3 && line[2] == ' ') {
+        prompt = line.substr(3);
+      }
+      if (prompt.empty()) {
+        std::cout << "[AI] Empty prompt." << std::endl;
+        continue;
+      }
+      std::string ai_out = runPythonAI(prompt);
+      std::cout << ai_out << std::endl;
+      continue;
+    }
     // kept out to keep this companion lean and headless.
 
     // Before the Tcl_Eval section:
@@ -82,7 +149,15 @@ int main(int argc, char* argv[])
     continue;
   }
 
-    // Forward to Tcl
+    // Default: route any non-built-in input to AI (Tcl routing temporarily disabled)
+    {
+      std::string ai_out = runPythonAI(line);
+      std::cout << ai_out << std::endl;
+      continue;
+    }
+
+    /*
+    // Forward to Tcl (disabled for now while focusing on AI prompts)
     if (Tcl_Eval(interp, line.c_str()) != TCL_OK) {
       std::cerr << Tcl_GetStringResult(interp) << std::endl;
     } else {
@@ -91,6 +166,7 @@ int main(int argc, char* argv[])
         std::cout << result << std::endl;
       }
     }
+    */
   }
 
   // Clean exit
