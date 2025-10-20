@@ -19,8 +19,8 @@ int tclInit(Tcl_Interp* /*interp*/) { return TCL_OK; }
 
 static void printGreeting()
 {
-  std::cout << "I am your Chip Companion. How can I help you?" << std::endl;
-  std::cout << "Type 'help companion' (or 'hc') for tips, 'exit' to quit." << std::endl;
+  std::cout << "I am your AI Chip Assistant. How can I help you?" << std::endl;
+  std::cout << "Type 'exit' to quit." << std::endl;
 }
 
 // Shell escape the string
@@ -81,13 +81,13 @@ int main(int argc, char* argv[])
     return EXIT_FAILURE;
   }
 
-  // Initialize OpenROAD subsystems via public Tcl init
+  //Initialize OpenROAD subsystems via public Tcl init
   // ord::tclAppInit(interp);
 
   printGreeting();
 
   std::string line;
-  while (std::cout << "chipcompanion> " && std::getline(std::cin, line)) {
+  while (std::cout << "chipaiassistant> " && std::getline(std::cin, line)) {
     // Trim
     auto ltrim = [](std::string& s) {
       size_t i = s.find_first_not_of(" \t\r\n");
@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
     if (line == "exit" || line == "quit") {
       break;
     }
-    if (line == "help companion" || line == "hc") {
+    if (line == "help assistant" || line == "hc") {
       printGreeting();
       continue;
     }
@@ -135,21 +135,24 @@ int main(int argc, char* argv[])
       std::cout << ai_out << std::endl;
       continue;
     }
-    // kept out to keep this companion lean and headless.
+    // kept out to keep assista lean and headless.
 
     // Before the Tcl_Eval section:
   if (line == "gui" || line == "launch_gui") {
-    // Adjust the path if needed (or rely on PATH)
-    const char* cmd = "/home/ubuntu/OpenROAD/build/bin/openroad -gui &";
-    int rc = std::system(cmd);
+    // Launch OpenROAD GUI using OPENROAD_BIN if set, otherwise rely on PATH
+    const char* env_bin = std::getenv("OPENROAD_BIN");
+    std::string gui_cmd = (env_bin && std::string(env_bin).size())
+                          ? (std::string(env_bin) + " -gui &")
+                          : std::string("openroad -gui &");
+    int rc = std::system(gui_cmd.c_str());
     if (rc != 0) {
-      std::cerr << "Failed to launch GUI; ensure the path is correct: "
-                << cmd << std::endl;
+      std::cerr << "Failed to launch GUI; tried: " << gui_cmd
+                << ". Set OPENROAD_BIN or ensure 'openroad' is in PATH." << std::endl;
     }
     continue;
   }
 
-    // Default: route any non-built-in input to AI (Tcl routing temporarily disabled)
+    
     {
       std::string ai_out = runPythonAI(line);
       std::cout << ai_out << std::endl;
