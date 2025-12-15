@@ -1,19 +1,24 @@
 import subprocess
 import sys
+import time  # <-- import time for delays
 
-# Paths (adjust relative to where this script is run)
+'''
+Usage:
+   python3 openroad_ai_interactive.py 
+'''
+
 synth_verilog = "gcd_sky130hd.v"
 prompt_file = "../../sdc_gens/SiliTiming/prompts/prompt.txt"
 sdc_file = "../../sdc_gens/SiliTiming/sdcs/AI_gen_gcd_sky130hd.sdc"
 
-# AI SDC generation command
 ai_command = "python3 ../../sdc_gens/SiliTiming/agent.py {} {} {}".format(
     synth_verilog, sdc_file, prompt_file
 )
 
-# Tcl commands to feed OpenROAD
 tcl_commands = (
-    "# Source helpers and vars\n"
+    "# Welcome to SiliTiming. Interactive Mode Enabled\n\n"
+    "# Thinking about the design and the constraints...\n\n"
+    "# Reading the helpers and vars...\n"
     "source helpers.tcl\n"
     "source flow_helpers.tcl\n"
     "source sky130hd/sky130hd.vars\n\n"
@@ -25,15 +30,17 @@ tcl_commands = (
     "# Set die and core area\n"
     "set die_area {0 0 299.96 300.128}\n"
     "set core_area {9.996 10.08 289.964 290.048}\n\n"
-    "# Generate SDC via AI\n"
-    "puts \"Generating SDC via AI...\"\n"
+    "# Generate SDC via AI model....\n"
     "if {[catch {exec " + ai_command + "} result]} {\n"
     "    puts \"Error generating SDC: $result\"\n"
     "    exit 1\n"
     "}\n\n"
-    "# Continue with normal flow\n"
+    "# Getting a formatted SDC from the AI model....\n"
+    "# SDC File ready\n"
+    "# Read SDC file into the OpenROAD flow for GCD sky130hd...\n"
+    "# Executing OpenROAD flow\n"
     "include -echo \"flow.tcl\"\n"
-    "exit\n"
+    "# GCD OpenROAD Flow Completed.\n"
 )
 
 # Start OpenROAD subprocess
@@ -41,18 +48,31 @@ proc = subprocess.Popen(
     ["openroad"],
     stdin=subprocess.PIPE,
     stdout=subprocess.PIPE,
-    stderr=subprocess.STDOUT,  # merge stdout and stderr
+    stderr=subprocess.STDOUT,  
     text=True,
     bufsize=1
 )
 
-# Stream output line by line
+# # Start OpenROAD subprocess
+# proc = subprocess.Popen(
+#     ["openroad"],
+#     stdin=subprocess.PIPE,
+#     stdout=subprocess.PIPE,
+#     stderr=subprocess.STDOUT,  # merge stdout and stderr
+#     text=True,
+#     bufsize=1
+# )
+
 for line in tcl_commands.splitlines():
     proc.stdin.write(line + "\n")
+    proc.stdin.flush()
+    print(f"{line}") 
+    time.sleep(0.75)  
+
 proc.stdin.close()
 
-# Print OpenROAD output in real time
 for line in proc.stdout:
     print(line, end='')
 
 proc.wait()
+
